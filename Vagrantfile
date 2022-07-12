@@ -24,11 +24,6 @@ Vagrant.configure("2") do |config|
     vmachine3.vm.box = "ubuntu/focal64"
     vmachine3.vm.hostname = 'vmachine3'
     vmachine3.vm.network "private_network", ip: "192.168.50.13", virtualbox__intnet: true
-#    vmachine3.vm.provision "shell", inline: <<SHELL
-#    apt update
-#    apt install python3-pip ansible -y
-    #python3 -m pip install ansible
-#SHELL
     # We provision all environment inside "vmachine3" so it is
     # done once in parallel at end
     # If it fails here, make sure ansible is properly installed on the host machine
