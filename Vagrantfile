@@ -8,50 +8,33 @@ Vagrant.configure("2") do |config|
   # through the Ansible playbook
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
-  config.vm.define "iscsi" do |iscsi|
-    iscsi.vm.box = "debian/stretch64"
-    iscsi.vm.hostname = 'iscsi'
-    iscsi.vm.network "private_network", ip: "192.168.50.20", virtualbox__intnet: true
-    iscsi.vm.provider "virtualbox" do |vb|
-      # For the name, we emulate Vagrant name generation
-      # Note that Vagrant will execute this code at start, not
-      # on actual provision, final name for code just below
-      vb.name = 'nfs_iscsi_'+Time.now.strftime('%s%L')+'_'+Process.pid.to_s
-
-      # https://stackoverflow.com/a/31177761/706716
-      line = `VBoxManage list systemproperties`.split(/\n/).grep(/Default machine folder/).first
-      vb_machine_folder = line.split(':')[1].strip()
-      disk = File.join(vb_machine_folder, vb.name, 'data.vdi')
-      unless File.exist?(disk)
-        vb.customize ['createhd', '--filename', disk, '--variant', 'Fixed', '--size', 1024]
-      end
-      vb.customize ['storagectl', :id, '--name', 'SATA Controller', '--portcount', 2]
-      vb.customize ['storageattach', :id, '--storagectl', 'SATA Controller', '--port', 1, '--device', 0, '--type', 'hdd', '--medium', disk]
-    end
+  config.vm.define "vmachine1" do |vmachine1|
+    vmachine1.vm.box = "ubuntu/focal64"
+    vmachine1.vm.hostname = 'vmachine1'
+    vmachine1.vm.network "private_network", ip: "192.168.50.11", virtualbox__intnet: true
   end
 
-  config.vm.define "nfs1" do |nfs1|
-    nfs1.vm.box = "debian/stretch64"
-    nfs1.vm.hostname = 'nfs1'
-    nfs1.vm.network "private_network", ip: "192.168.50.11", virtualbox__intnet: true
+  config.vm.define "vmachine2" do |vmachine2|
+    vmachine2.vm.box = "ubuntu/focal64"
+    vmachine2.vm.hostname = 'vmachine2'
+    vmachine2.vm.network "private_network", ip: "192.168.50.12", virtualbox__intnet: true
   end
 
-  config.vm.define "nfs2" do |nfs2|
-    nfs2.vm.box = "debian/stretch64"
-    nfs2.vm.hostname = 'nfs2'
-    nfs2.vm.network "private_network", ip: "192.168.50.12", virtualbox__intnet: true
-  end
-
-  config.vm.define "client" do |client|
-    client.vm.box = "debian/stretch64"
-    client.vm.hostname = 'client'
-    client.vm.network "private_network", ip: "192.168.50.100", virtualbox__intnet: true
-
-    # We provision all environment inside "client" so it is
+  config.vm.define "vmachine3" do |vmachine3|
+    vmachine3.vm.box = "ubuntu/focal64"
+    vmachine3.vm.hostname = 'vmachine3'
+    vmachine3.vm.network "private_network", ip: "192.168.50.13", virtualbox__intnet: true
+#    vmachine3.vm.provision "shell", inline: <<SHELL
+#    apt update
+#    apt install python3-pip ansible -y
+    #python3 -m pip install ansible
+#SHELL
+    # We provision all environment inside "vmachine3" so it is
     # done once in parallel at end
-    client.vm.provision :ansible do |ansible|
+    # If it fails here, make sure ansible is properly installed on the host machine
+    vmachine3.vm.provision :ansible do |ansible|
       ansible.compatibility_mode = "2.0"
-      ansible.playbook = "nfs.yml"
+      ansible.playbook = "ansible.yml"
       ansible.limit = "all"
     end
   end

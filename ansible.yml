@@ -1,0 +1,81 @@
+---
+- name: Base configuration
+  hosts: all
+  become: true
+  tasks:
+  - name: Time Zone
+    timezone:
+      name: UTC
+  - name: Chrony installed
+    package:
+      name: chrony
+  - name: Names in /etc/hosts
+    blockinfile:
+      path: /etc/hosts
+      block: |
+        192.168.50.10 floatingip
+        192.168.50.11 vmachine1
+        192.168.50.12 vmachine2
+        192.168.50.13 vmachine3
+
+- name: Keepalived
+  hosts:
+  - vmachine1
+  - vmachine2
+  become: true
+  tasks:
+  #- name: create keepalived systemd override directory
+  #  file:
+  #    path: /etc/systemd/system/keepalived.service.d
+  #    state: directory
+  - name: Apt Install requirements
+    apt:
+      update_cache: yes
+      name: 
+        - make
+        - autoconf
+        - automake
+        - gcc
+        - build-essential
+        - libsystemd-dev #systemd-devel
+        - libkmod-dev #kmod-devel
+        - libmagic-dev #file-devel
+        - libsnmp-dev #net-snmp-devel
+        #- iptables-dev
+        - libipset-dev
+        - libssl-dev
+        - libglib2.0-dev
+        - libnl-3-dev
+        - libnl-genl-3-dev
+  - name: Compile and install latest keepalived software
+    shell: |
+      git clone https://github.com/acassen/keepalived.git
+      cd keepalived
+      git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) # Checkout latest tag
+      ./autogen.sh
+      ./configure
+      make
+      make install
+      systemctl enable keepalived
+  - name: Copy keepalived.conf
+    copy:
+      src: keepalived.conf
+      dest: /usr/local/etc/keepalived/keepalived.conf
+    become: yes
+  - name: Notify script
+    copy:
+      src: notify.sh
+      dest: /usr/local/sbin
+      mode: '0740'
+  - name: Configuration id
+    lineinfile:
+      path: /etc/default/keepalived
+      line: 'DAEMON_ARGS="-i {{ ansible_hostname }}"'
+      regexp: '^DAEMON_ARGS'
+
+    register: keepalived_conf
+  - name: Restart keepalived
+    when: keepalived_conf.changed
+    service:
+      name: keepalived
+      state: restarted
