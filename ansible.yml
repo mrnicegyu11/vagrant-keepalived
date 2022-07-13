@@ -13,10 +13,10 @@
     blockinfile:
       path: /etc/hosts
       block: |
-        192.168.50.10 floatingip
-        192.168.50.11 vmachine1
-        192.168.50.12 vmachine2
-        192.168.50.13 vmachine3
+        192.168.56.10 floatingip
+        192.168.56.11 vmachine1
+        192.168.56.12 vmachine2
+        192.168.56.13 vmachine3
 
 - name: Keepalived
   hosts:

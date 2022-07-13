@@ -11,19 +11,19 @@ Vagrant.configure("2") do |config|
   config.vm.define "vmachine1" do |vmachine1|
     vmachine1.vm.box = "ubuntu/focal64"
     vmachine1.vm.hostname = 'vmachine1'
-    vmachine1.vm.network "private_network", ip: "192.168.50.11", virtualbox__intnet: true
+    vmachine1.vm.network "private_network", ip: "192.168.56.11"
   end
 
   config.vm.define "vmachine2" do |vmachine2|
     vmachine2.vm.box = "ubuntu/focal64"
     vmachine2.vm.hostname = 'vmachine2'
-    vmachine2.vm.network "private_network", ip: "192.168.50.12", virtualbox__intnet: true
+    vmachine2.vm.network "private_network", ip: "192.168.56.12"
   end
 
   config.vm.define "vmachine3" do |vmachine3|
     vmachine3.vm.box = "ubuntu/focal64"
     vmachine3.vm.hostname = 'vmachine3'
-    vmachine3.vm.network "private_network", ip: "192.168.50.13", virtualbox__intnet: true
+    vmachine3.vm.network "private_network", ip: "192.168.56.13"
     # We provision all environment inside "vmachine3" so it is
     # done once in parallel at end
     # If it fails here, make sure ansible is properly installed on the host machine
