@@ -52,7 +52,7 @@
     shell: |
       git clone https://github.com/acassen/keepalived.git
       cd keepalived
-      git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) # Checkout latest tag
+      git checkout $(git describe --tags $(git rev-list --tags --max-count=1)) # Checkout latest tag #FIXME: Pin Version
       ./autogen.sh
       ./configure
       make
@@ -63,8 +63,25 @@
       src: keepalived.conf
       dest: /usr/local/etc/keepalived/keepalived.conf
     become: yes
+  - name: Create machine-online file
+    copy:
+      content: ""
+      dest: /keepalived.machine.online
+      force: no
+      group: sys
+      owner: root
+      mode: 0777
   - name: Notify script
     copy:
       src: notify.sh
       dest: /usr/local/sbin
       mode: '0740'
+  - name: Copy keepalived_vrrp_script.sh
+    copy:
+      src: keepalived_vrrp_script.sh
+      dest: /usr/local/sbin/keepalived_vrrp_script.sh
+      mode: 0777
+    become: yes
+  - name: Reboot
+    ansible.builtin.reboot:
+  
